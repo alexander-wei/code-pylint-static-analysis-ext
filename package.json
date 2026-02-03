@@ -1,0 +1,167 @@
+{
+  "name": "python-pylint-static-analysis",
+  "type": "commonjs",
+  "displayName": "Pylint Static Analysis",
+  "description": "Eclipse IDE-style static code analysis in VS Code. Project-wide pylint diagnostics for Python.",
+  "publisher": "alexander-wei",
+  "license": "SEE LICENSE IN COPYING",
+  "repository": {
+    "url": "https://github.com/alexander-wei/code-pylint-static-analysis-ext"
+  },
+  "icon": "plugin.png",
+  "version": "0.0.3",
+  "engines": {
+    "vscode": ">=1.0.1"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters"
+  ],
+  "keywords": [
+    "pylint",
+    "python",
+    "static analysis",
+    "code analysis",
+    "workspace lint",
+    "project lint",
+    "project-wide",
+    "whole project",
+    "linting",
+    "diagnostics",
+    "problems",
+    "vscode",
+    "vscode pylint",
+    "language server",
+    "lsp",
+    "ide",
+    "ide-like",
+    "eclipse",
+    "intellij",
+    "batch lint",
+    "recursive lint",
+    "python workspace",
+    "code quality",
+    "quality checks",
+    "software engineering",
+    "python lint",
+    "py lint",
+    "ci",
+    "precommit",
+    "workspace diagnostics"
+  ],
+  "activationEvents": [
+    "onCommand:pylintStatic.runWholeWorkspace",
+    "onCommand:pylintStatic.runResource"
+  ],
+  "main": "./dist/activate.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "pylintStatic.runWholeWorkspace",
+        "title": "Pylint: Run Whole Workspace (R/C → I)"
+      },
+      {
+        "command": "pylintStatic.runResource",
+        "title": "Pylint: Run on File/Folder (Explorer)"
+      },
+      {
+        "command": "pylintStatic.clearWorkspace",
+        "title": "Pylint: Clear Whole Workspace (R/C → I)"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "pylintStatic.runResource",
+          "when": "resourceLangId == python || explorerResourceIsFolder",
+          "group": "2_workspace@10"
+        }
+      ]
+    },
+    "problemMatchers": [
+      {
+        "name": "pylintStatic",
+        "owner": "python",
+        "fileLocation": [
+          "relative",
+          "${workspaceFolder}"
+        ],
+        "pattern": [
+          {
+            "regexp": "^(.*):(\\d+):(\\d+):\\s+([WEI])\\s+(\\S+[A-Z]?\\d+\\S+):\\s+(.*)\\s+\\((\\S+)\\)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "severity": 4,
+            "code": 7,
+            "message": 6
+          }
+        ]
+      }
+    ],
+    "configuration": {
+      "title": "Pylint Static Analysis",
+      "properties": {
+        "pylintStatic.pylintPath": {
+          "type": "string",
+          "default": "pylint",
+          "description": "Path to pylint binary (e.g. /home/alexander/anaconda3/envs/dfchain/bin/pylint)"
+        },
+        "pylintStatic.usePythonModule": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run pylint as '<python> -m pylint' using the selected interpreter."
+        },
+        "pylintStatic.enableAll": {
+          "type": "boolean",
+          "default": true
+        },
+        "pylintStatic.recursive": {
+          "type": "boolean",
+          "default": true
+        },
+        "pylintStatic.extraArgs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Extra arguments passed to pylint."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "devcompile": "tsc -p ./tsconfig.json && tsc-alias -p ./tsconfig.json",
+    "compile": "npm run check-types && node esbuild.js",
+    "check-types": "tsc --noEmit",
+    "watch:tsc": "tsc -watch -p ./",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch": "npm-run-all -p watch:*",
+    "pretest": "npm run devcompile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test",
+    "package": "npm run check-types && node esbuild.js --production",
+    "devpackage": "vsce package --baseImagesUrl https://alexander-wei.github.io/code-pylint-static-analysis-ext/",
+    "publish": "vsce publish --baseImagesUrl https://alexander-wei.github.io/code-pylint-static-analysis-ext/"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@types/vscode": ">=1.0.1",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
+    "esbuild": "^0.27.3",
+    "eslint": "^9.39.2",
+    "tsc-alias": "^1.8.16",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.52.0"
+  },
+  "dependencies": {
+    "builder-pattern": "^2.2.0",
+    "vscode-languageclient": "^8.0.1",
+    "vscode-languageserver": "^8.0.1",
+    "vscode-uri": "^3.1.0"
+  }
+}
