@@ -1,7 +1,7 @@
 import { spawn, ChildProcess } from "child_process";
 import IssueImpl from "../../application/parsing/IssueImpl";
 import DiagnosticsPublisherIntf from "../../diagnostics/DiagnosticsPublisherIntf";
-import ExtensionContextIntf from "../../vscodeextension/ExtensionContextInf";
+import ExtensionContextIntf from "../../vscodeextension/ExtensionContextIntf";
 import * as vscode from "vscode";
 import HandleBufferCallableIntf from "src/pylintstatic/application/parsing/HandleBufferIntf";
 

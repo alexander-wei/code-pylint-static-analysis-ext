@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import PylintWrappedTask from "../../application/parsing/PylintWrappedTask";
 // import { DiagnosticsManager } from "../infrastructure/DiagnosticsManager";
 import DiagnosticsPublisherIntf from "../../diagnostics/DiagnosticsPublisherIntf";
-import ExtensionContextIntf from "src/pylintstatic/vscodeextension/ExtensionContextInf";
+import ExtensionContextIntf from "#PylintWrapper/vscodeextension/ExtensionContextIntf";
 
 import PylintGateway from "src/pylintstatic/infrastructure/pylint/PylintGateway";
 import CommandIntf from "./CommandIntf";

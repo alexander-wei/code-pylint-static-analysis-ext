@@ -1,36 +1,60 @@
-/** -----------------------------
- *  Task class
- *  ----------------------------- */
+import { WorkspaceFolder } from "vscode";
 
-import ExtensionContextIntf from "src/pylintstatic/vscodeextension/ExtensionContextInf";
-import PylintWrappedSettingsReader from "./PylintWrappedSettingsReader";
-
+import DiagnosticsPublisherIntf from "#PylintWrapper/diagnostics/DiagnosticsPublisherIntf";
+import ExtensionContextIntf from "#PylintWrapper/vscodeextension/ExtensionContextIntf";
 import PythonInterpreter from "src/pylintstatic/infrastructure/pylint/PythonInterpreter";
-import * as vscode from "vscode";
-import DiagnosticsPublisher from "../publishing/DiagnosticsPublisher";
 
+import PylintWrappedSettingsReader from "./PylintWrappedSettingsReader";
 import IssueImpl from "./IssueImpl";
-import { DiagnosticsPublisherIntf } from "src/pylintstatic/diagnostics";
 
+/**
+ * Orchestrates execution of the Pylint CLI tool. Transforms its buffered stdout stream
+ * into Issue objects. Pushes Issue objects to Diagnostics service.
+ */
 export default class PylintWrappedTask {
+  /**
+   * Primary Pylint output pattern:
+   *   file:line:column: <CATEGORY><CODE>: message
+   *
+   * Example:
+   *   api/models.py:79:25: I C0209: Formatting a regular string ...
+   */
   public static readonly PATT =
     /^(.*):(\d+):(\d+):\s+(W|E|I|R|C)([^:]*):\s+(.*)$/;
+
+  /**
+   * Alternate Pylint output format:
+   *   file:line: [CODE] message
+   *
+   * Example:
+   *   api/models.py:79: [C0209] Formatting a regular string ...
+   */
   public static readonly PATT_ALT =
     /^(.*):(\d+):\s*\[([A-Z]\d+)[^\]]*\]\s*(.*)$/;
 
+  /**
+   * Construct a Pylint wrapper application
+   *
+   * @param {ExtensionContextIntf} ext - extension context (vscode specific)
+   * @param {PylintWrappedSettingsReader} settingsReader - extension *user settings* reader
+   * @param {DiagnosticsPublisher} diagnosticsManager - collects diagnostics
+   */
   public constructor(
     private readonly ext: ExtensionContextIntf,
     private readonly settingsReader: PylintWrappedSettingsReader,
-    private readonly diagnosticsManager: DiagnosticsPublisher,
+    private readonly diagnosticsManager: DiagnosticsPublisherIntf,
   ) {}
 
   /**
-   * Returns command/args/cwd suitable for programmatic spawning by the
-   * extension (so we can run pylint once and capture structured issue
-   * markers). This mirrors createExecution but exposes the raw pieces.
+   * Creates the spawn vector (Cli path to executable, *arguments) that will be used to launch
+   * Pylint.
+   *
+   * @param {WorkspaceFolder} folder - handle to workspace folder/resource; cwd
+   * @param {string} target - path to target passed to pylint
+   * @returns {Promise<{ command: string; args: string[]; cwd: string }>} Cli spawn vector
    */
   public async createSpawn(
-    folder: vscode.WorkspaceFolder,
+    folder: WorkspaceFolder,
     target: string = ".",
   ): Promise<{ command: string; args: string[]; cwd: string }> {
     const settings = this.settingsReader.read(folder);
@@ -66,7 +90,15 @@ export default class PylintWrappedTask {
     return { command: command, args, cwd };
   }
 
+  /**
+   * Accept a text buffer. Parse Pylint messages from their syntax. Push extracted diagnostics
+   * to LSP server/
+   *
+   * @param {Buffer} chunk - input buffer (raw text output from pylint with standard output mode)
+   * @param {NodeJS.WritableStream} out - handle to output stream for debugging
+   */
   public handle(chunk: Buffer, out: NodeJS.WritableStream): void {
+    // Buffer a logical block: first line + following continuation lines
     const text = chunk.toString("utf8");
     const lines = text.split(/\r?\n/);
     for (let i = 0; i < lines.length; i++) {
@@ -75,8 +107,6 @@ export default class PylintWrappedTask {
       if (line === "" && isLast) {
         continue;
       }
-
-      // Buffer a logical block: first line + following continuation lines
       const buffer: string[] = [line];
       // Determine continuation lines. A line is considered the start of a
       // new issue if IssueImpl.fromLine(parsedLine) returns a non-null
@@ -97,18 +127,27 @@ export default class PylintWrappedTask {
           return false;
         }
       };
+      const isPylintBanner = (ln: string): boolean =>
+        /^\s*\*{5,}(?:\s|$)/.test(ln);
+      const isSeparatorLine = (ln: string): boolean => /^\s*-{5,}\s*$/.test(ln);
+      const isRatingLine = (ln: string): boolean =>
+        /^\s*Your code has been rated at\b/.test(ln);
 
       while (i + 1 < lines.length) {
         const next = lines[i + 1];
-
+        // If the next line parses as a new issue, stop collecting
+        if (
+          isIssueLine(next) ||
+          isPylintBanner(next) ||
+          isSeparatorLine(next) ||
+          isRatingLine(next)
+        ) {
+          break;
+        }
         if (/^==/.test(next) || /^\s/.test(next)) {
           buffer.push(next);
           i += 1;
           continue;
-        }
-        // If the next line parses as a new issue, stop collecting
-        if (isIssueLine(next)) {
-          break;
         }
         buffer.push(next);
         i += 1;
@@ -126,8 +165,7 @@ export default class PylintWrappedTask {
         for (let j = 1; j < buffer.length; j++) {
           issue.appendContinuation(buffer[j] + "\n");
         }
-        // print single JSON marker for the issue so an in-extension caller
-        // can parse structured issues when the runner is executed programmatically.
+        // print single JSON marker for the issue
         out.write(`__PYLINT_ISSUE__ ${JSON.stringify(issue.toJSON())}\n`);
 
         this.diagnosticsManager.addIssue(

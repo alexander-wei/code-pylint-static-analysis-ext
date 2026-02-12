@@ -5,7 +5,7 @@ import PylintWrappedTask from "src/pylintstatic/application/parsing/PylintWrappe
 
 import DiagnosticsPublisherIntf from "src/pylintstatic/diagnostics/DiagnosticsPublisherIntf";
 import PylintGateway from "src/pylintstatic/infrastructure/pylint/PylintGateway";
-import ExtensionContextIntf from "src/pylintstatic/vscodeextension/ExtensionContextInf";
+import ExtensionContextIntf from "#PylintWrapper/vscodeextension/ExtensionContextIntf";
 
 import CommandIntf from "./CommandIntf";
 import { ConstantsClass } from "src/pylintstatic/vscodeextension";

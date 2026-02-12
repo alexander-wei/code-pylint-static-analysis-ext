@@ -1,16 +1,20 @@
+import AsAbsolutePathIntf from "#PylintWrapper/vscodeextension/AsAbsolutePathIntf";
 import ConstantsClass from "src/pylintstatic/vscodeextension/ConstantsClass";
-import ExtensionContextIntf from "src/pylintstatic/vscodeextension/ExtensionContextInf";
+import ExtensionContextIntf from "#PylintWrapper/vscodeextension/ExtensionContextIntf";
 import * as vscode from "vscode";
 
 /**
- * Concrete adapter around vscode APIs.
- * This is the only place that touches vscode.* directly.
+ * Adapter around VsCode API's
+ * @implements {ExtensionContextIntf}
  */
 export default class VsCodeExtensionContext implements ExtensionContextIntf {
   public readonly subscriptions: { push(disposable: vscode.Disposable): void };
 
+  public readonly asAbsolutePath: AsAbsolutePathIntf;
+
   public constructor(private readonly ctx: vscode.ExtensionContext) {
     this.subscriptions = ctx.subscriptions;
+    this.asAbsolutePath = ctx.asAbsolutePath.bind(ctx);
   }
 
   public getWorkspaceFolder(): vscode.WorkspaceFolder {

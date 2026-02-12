@@ -1,8 +1,6 @@
-/** -----------------------------
- *  Command(s)
- *  ----------------------------- */
-
 import * as path from "path";
+import { existsSync } from "fs";
+
 import { TransportKind } from "vscode-languageclient/node";
 
 import {
@@ -25,20 +23,45 @@ import {
 
 import LspClient from "../lsp/LspClient";
 
-/** -----------------------------
- *  Composition root
- *  ----------------------------- */
-
 class Extension {
+  /**
+   * Constructor
+   * @param {ExtensionContextIntf} ext - VsCode Extension Context
+   */
   public constructor(private readonly ext: ExtensionContextIntf) {}
 
-  public activate(): void {
-    // const runnerJsPath = path.join(__dirname, "runner.js");
+  /**
+   * Resolves LspServer.js path
+   * @param {string[]} candidates - paths to check
+   * @returns {string} path to existing LspServer.js
+   * @throws {Error} if no LspServer.js is found
+   */
+  private static firstExisting(...candidates: string[]): string {
+    for (const p of candidates) {
+      if (existsSync(p)) {
+        return p;
+      }
+    }
+    throw new Error(ConstantsClass.displayLspModuleNotFound(...candidates));
+  }
 
+  /**
+   * Entrypoint
+   * Composes 1. LspServer
+   * 2. Diagnostics publisher
+   * 3. Pylint task factory
+   * 4. Commands
+   */
+  public activate(): void {
     const settingsReader = new PylintWrappedSettingsReader(this.ext);
 
+    const serverModule = Extension.firstExisting(
+      this.ext.asAbsolutePath(path.join("dist", ConstantsClass.lspServerPath)), // esbuild
+      this.ext.asAbsolutePath(
+        path.join("out/src/pylintstatic", ConstantsClass.lspServerPath),
+      ), // tsc build
+    );
     // Start language client/server used to publish diagnostics via LSP
-    const serverModule = path.join(__dirname, ConstantsClass.lspServerPath);
     const serverOptions = {
       run: { module: serverModule, transport: TransportKind.ipc },
       debug: { module: serverModule, transport: TransportKind.ipc },

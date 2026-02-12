@@ -21,5 +21,9 @@ export default class ConstantsClass {
   static readonly displayErrorResourceUndefined =
     "Select a file or folder in the explorer first.";
 
+  static displayLspModuleNotFound(...candidates: string[]) {
+    return `LSP server module not found. Tried:\n${candidates.join("\n")}`;
+  }
+
   private constructor() {}
 }

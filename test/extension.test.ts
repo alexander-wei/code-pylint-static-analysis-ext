@@ -7,13 +7,23 @@ import * as vscode from "vscode";
 
 import * as myExtension from "src/pylintstatic/activate";
 import { ConstantsClass } from "src/pylintstatic/vscodeextension";
+import path from "path";
 
 suite("Extension Test Suite", () => {
   vscode.window.showInformationMessage("Start all tests.");
 
   test("extension activates and registers command", async () => {
     // Call the extension's activate() with a mock context to ensure registration
-    const ctx: any = { subscriptions: [] };
+    const extensionRoot = path.resolve(__dirname, "..", "..");
+    const ctx: any = {
+      subscriptions: [],
+      asAbsolutePath: (relativePath: string) => {
+        // return __dirname;
+        console.log(path.join(extensionRoot, relativePath));
+
+        return path.join(extensionRoot, relativePath);
+      },
+    };
     await myExtension.activate(ctx as vscode.ExtensionContext);
 
     const commands = await vscode.commands.getCommands(true);

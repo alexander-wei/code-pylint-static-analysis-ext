@@ -1,5 +1,5 @@
 import DiagnosticsPublisherIntf from "src/pylintstatic/diagnostics/DiagnosticsPublisherIntf";
-import ExtensionContextIntf from "src/pylintstatic/vscodeextension/ExtensionContextInf";
+import ExtensionContextIntf from "#PylintWrapper/vscodeextension/ExtensionContextIntf";
 import { Disposable } from "vscode";
 import CommandIntf from "./CommandIntf";
 import { ConstantsClass } from "src/pylintstatic/vscodeextension";
