@@ -2,11 +2,11 @@
 
 <p>
   <a href="https://marketplace.visualstudio.com/items?itemName=alexander-wei.python-pylint-static-analysis">
-    <img src="https://img.shields.io/visual-studio-marketplace/v/alexander-wei.python-pylint-static-analysis" />
+    <img src="https://img.shields.io/visual-studio-marketplace/v/alexander-wei.python-pylint-static-analysis?cacheSeconds=3600" />
   </a>
-  <img src="https://img.shields.io/visual-studio-marketplace/d/alexander-wei.python-pylint-static-analysis?color=green" />
-  <img src="https://img.shields.io/visual-studio-marketplace/i/alexander-wei.python-pylint-static-analysis?color=green" />
-  <img src="https://img.shields.io/visual-studio-marketplace/r/alexander-wei.python-pylint-static-analysis?color=green" />
+  <img src="https://img.shields.io/visual-studio-marketplace/d/alexander-wei.python-pylint-static-analysis?color=green&cacheSeconds=3600" />
+  <img src="https://img.shields.io/visual-studio-marketplace/i/alexander-wei.python-pylint-static-analysis?color=green&cacheSeconds=3600" />
+  <img src="https://img.shields.io/visual-studio-marketplace/r/alexander-wei.python-pylint-static-analysis?color=green&cacheSeconds=3600" />
 </p>
 
 #### Run pylint on entire packages without opening any files — Eclipse IDE‑style static code analysis in VS Code
