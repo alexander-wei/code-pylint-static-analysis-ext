@@ -1,16 +1,13 @@
 # Pylint Static Analysis
 
-<div style="display: flex; gap: 2px;">
-<a href="https://marketplace.visualstudio.com/items?itemName=alexander-wei.python-pylint-static-analysis"><img alt="Visual Studio Marketplace Version" src="https://img.shields.io/visual-studio-marketplace/v/alexander-wei.python-pylint-static-analysis?label=Visual%20Studio%20Marketplace&link=https%3A%2F%2Fmarketplace.visualstudio.com%2Fitems%3FitemName%3Dalexander-wei.python-pylint-static-analysis" style="display: block;"></a>
-
-<img alt="Visual Studio Marketplace Downloads" src="https://img.shields.io/visual-studio-marketplace/d/alexander-wei.python-pylint-static-analysis?color=g" style="display: block;">
-
-<img alt="Visual Studio Marketplace Installs" src="https://img.shields.io/visual-studio-marketplace/i/alexander-wei.python-pylint-static-analysis?color=g" style="display: block;">
-
-<img alt="Visual Studio Marketplace Rating" src="https://img.shields.io/visual-studio-marketplace/r/alexander-wei.python-pylint-static-analysis?color=green" style="display: block;">
-
-</div>
-
+<p>
+  <a href="https://marketplace.visualstudio.com/items?itemName=alexander-wei.python-pylint-static-analysis">
+    <img src="https://img.shields.io/visual-studio-marketplace/v/alexander-wei.python-pylint-static-analysis" />
+  </a>
+  <img src="https://img.shields.io/visual-studio-marketplace/d/alexander-wei.python-pylint-static-analysis?color=green" />
+  <img src="https://img.shields.io/visual-studio-marketplace/i/alexander-wei.python-pylint-static-analysis?color=green" />
+  <img src="https://img.shields.io/visual-studio-marketplace/r/alexander-wei.python-pylint-static-analysis?color=green" />
+</p>
 
 #### Run pylint on entire packages without opening any files — Eclipse IDE‑style static code analysis in VS Code
 
