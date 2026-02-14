@@ -12,6 +12,9 @@ import {
  * VsCode extension context interface
  */
 interface ExtensionContextIntf {
+  /**
+   * Array manages lifecycle of extension's disposable objects
+   */
   readonly subscriptions: { push(disposable: Disposable): void };
 
   getWorkspaceFolder(): WorkspaceFolder;
@@ -21,14 +24,10 @@ interface ExtensionContextIntf {
     scope?: Uri,
   ): WorkspaceConfiguration;
 
-  registerTaskProvider(type: string, provider: TaskProvider): Disposable;
-
   registerCommand(
     command: string,
     callback: (...args: any[]) => any,
   ): Disposable;
-
-  executeTask(task: Task): Thenable<TaskExecution>;
 
   showErrorMessage(message: string): Thenable<string | undefined>;
 

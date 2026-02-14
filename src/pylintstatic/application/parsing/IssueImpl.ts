@@ -1,5 +1,11 @@
-import IssueIntf from "../../diagnostics/IssueIntf";
+import { IssueIntf } from "#PylintWrapper/diagnostics";
 
+/**
+ * Adapt `pylint` buffered standard output lines to structured diagnostic
+ * `Issue` objects.
+ *
+ * Mutable implementation of the Issue adapter and diagnostic container.
+ */
 export default class IssueImpl implements IssueIntf {
   public readonly file: string;
   public readonly line: number;
@@ -7,11 +13,29 @@ export default class IssueImpl implements IssueIntf {
   public readonly category: IssueIntf["category"];
   public readonly originalCategory?: string;
   public readonly code?: string;
-  public codeTag?: string;
+  public readonly codeTag?: string;
   public message: string;
   public raw?: string;
-  private readonly _codeRest: string;
 
+  /**
+   * Construct a diagnostic object.
+   *
+   * IssueImpl is mutable, notwithstanding certain critical elements being set as final
+   * attributes. These are:
+   * @param file
+   * @param line
+   * @param column
+   * @param category
+   * @param originalCategory
+   * @param codeRest
+   *
+   * The other attributes,
+   * @param message
+   * @param raw
+   *
+   * are allowed to be updated, by "extending" an issue with its continuation (parsing a
+   * consecutive line of the `pylint` standard output.)
+   */
   private constructor(
     file: string,
     line: number,
@@ -27,7 +51,6 @@ export default class IssueImpl implements IssueIntf {
     this.column = column;
     this.category = category;
     this.originalCategory = originalCategory; // [EWCRI] -> {error, warning, convention, refactor, information}
-    this._codeRest = codeRest || "";
     const trimmed = (codeRest || "").trim();
     this.code = trimmed === "" ? undefined : trimmed;
     this.message = message;
@@ -37,13 +60,16 @@ export default class IssueImpl implements IssueIntf {
 
     if (matchCodeTag && matchCodeTag[1]) {
       this.codeTag = matchCodeTag[1];
-      // process.stdout.write(matchCodeTag);
-      matchCodeTag.forEach((element) => {
-        // process.stdout.write(element);
-      });
     }
   }
 
+  /**
+   * Convert a line (presumably from `pylint` standard output) into a structured diagnostic object.
+   * @param {string} line - comes from `pylint` standard output
+   * @param {RegExp} PATT - regular expression that matches 7 capturing groups corresp to diagnostic attributes
+   * @param {RegExp} PATT_ALT - ibid
+   * @returns {IssueImpl | null} new diagnostic object
+   */
   public static fromLine(
     line: string,
     PATT: RegExp,
@@ -98,21 +124,21 @@ export default class IssueImpl implements IssueIntf {
     return null;
   }
 
+  /**
+   * Extend a diagnostic object with continuation from a following consecutive line
+   * presumably from the `pylint` standard output. Mutates this diagnostic object.
+   * @param {string} line
+   */
   public appendContinuation(line: string): void {
     this.message = `${this.message}\n${line.replace(/\n$/, "")}`;
     this.raw = (this.raw || "") + line;
   }
 
+  /**
+   * Serialize to json
+   * @returns {IssueIntf} serialized diagnostic object
+   */
   public toJSON(): IssueIntf {
-    const matchCodeTag = this.message.match(/.*\(([^\(\)]*)\)$/);
-
-    if (matchCodeTag && matchCodeTag[1]) {
-      this.codeTag = matchCodeTag[1];
-      // process.stdout.write(matchCodeTag);
-      matchCodeTag.forEach((element) => {
-        // process.stdout.write(element);
-      });
-    }
     return {
       file: this.file,
       line: this.line,

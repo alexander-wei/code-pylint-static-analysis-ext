@@ -1,9 +1,17 @@
-import DiagnosticsPublisherIntf from "src/pylintstatic/diagnostics/DiagnosticsPublisherIntf";
-import ExtensionContextIntf from "#PylintWrapper/vscodeextension/ExtensionContextIntf";
 import { Disposable } from "vscode";
-import CommandIntf from "./CommandIntf";
-import { ConstantsClass } from "src/pylintstatic/vscodeextension";
 
+import { DiagnosticsPublisherIntf } from "#PylintWrapper/diagnostics";
+
+import {
+  ConstantsClass,
+  ExtensionContextIntf,
+} from "#PylintWrapper/vscodeextension";
+
+import CommandIntf from "./CommandIntf";
+
+/**
+ * Command clears all registered diagnostics to reset Problems UI
+ */
 export default class ClearWorkspaceCommand implements CommandIntf {
   public static readonly id =
     `${ConstantsClass.appName}.${ConstantsClass.commandClearWorkspaceId}` as const;

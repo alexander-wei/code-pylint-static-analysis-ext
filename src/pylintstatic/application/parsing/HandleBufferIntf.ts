@@ -1,4 +1,6 @@
-interface HandleBufferCallableIntf {
-  (chunk: Buffer, out: NodeJS.WritableStream): void;
-}
+type HandleBufferCallableIntf = (
+  chunk: Buffer,
+  out: NodeJS.WritableStream,
+) => void;
+
 export default HandleBufferCallableIntf;

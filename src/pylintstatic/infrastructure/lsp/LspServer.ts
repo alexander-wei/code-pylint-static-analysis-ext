@@ -11,9 +11,7 @@ import { URI } from "vscode-uri";
 
 /**
  * LSP server for receiving pylint issues from the client and publishing
- * VS Code diagnostics (with rich codeDescription links).
- *
- * Exactly one class in this file; state and handlers are scoped here.
+ * VS Code diagnostics (with rich codeDescription links)
  */
 export class LspServer {
   private readonly connection = createConnection(ProposedFeatures.all as any);

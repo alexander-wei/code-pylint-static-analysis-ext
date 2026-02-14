@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { Builder } from "builder-pattern";
+import { Builder, IBuilder } from "builder-pattern";
 
 /**
  * Resolves the Python interpreter path for this extension.
@@ -23,7 +23,7 @@ export default class PythonInterpreter {
   public lastResort: string = "python3";
 
   /**
-   * Main entry point.
+   * Resolve the path to python interpreter, depending on user settings
    */
   public async resolve(): Promise<string> {
     // 1) Explicit override (extension setting)
@@ -49,14 +49,17 @@ export default class PythonInterpreter {
     return this.lastResort;
   }
 
-  // ------------------------
-  // Internals
-  // ------------------------
-
+  /**
+   * Get handle to user's workspace folder
+   */
   private get folderUri(): vscode.Uri | undefined {
     return this.folder?.uri;
   }
 
+  /**
+   * Get user settings that would override default resolution order
+   * @returns {string | undefined}
+   */
   private getExtensionOverride(): string | undefined {
     const cfg = vscode.workspace.getConfiguration(
       this.extensionConfigSection,
@@ -67,6 +70,10 @@ export default class PythonInterpreter {
     return override || undefined;
   }
 
+  /**
+   * Get the user's default python interpreter path; global, not specific to this extension's settings
+   * @returns {string | undefined}
+   */
   private getVscodePythonDefaultInterpreterPath(): string | undefined {
     const pythonCfg = vscode.workspace.getConfiguration(
       this.pythonConfigSection,
@@ -118,10 +125,19 @@ export default class PythonInterpreter {
     }
   }
 
+  /**
+   * Builder Api
+   * @returns {IBuilder<PythonInterpreter>}
+   */
   private static PythonInterpreterBuilder() {
     return Builder(PythonInterpreter);
   }
 
+  /**
+   * Resolves the python interpreter from user's workspace folder
+   * @param {vscode.WorkspaceFolder} folder
+   * @returns {Promise<string>} path to python interpreter
+   */
   static async resolvePythonInterpreter(
     folder?: vscode.WorkspaceFolder,
   ): Promise<string> {

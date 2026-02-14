@@ -1,44 +1,47 @@
 import * as path from "path";
 import * as vscode from "vscode";
+
 import {
   IssueIntf,
   DiagnosticsPublisherIntf,
-} from "src/pylintstatic/diagnostics";
+} from "#PylintWrapper/diagnostics";
 
-// A thin diagnostics manager that forwards issues to a language client
-// via a reporter function. This avoids requiring the language client
-// in tests; the extension will provide a reporter that sends a
-// "pylint/diagnostics" notification to the server.
+import ReporterIntf from "./ReporterIntf";
+import ReporterStreamIntf from "./ReporterStreamIntf";
+
+/**
+ * Diagnostics Publisher
+ *
+ * Forwards issues to (a language server implementing the Language Server Protocol (LSP) / any destination),
+ * through a reporter function.
+ *
+ * Similarly clears issues on request.
+ */
 export default class DiagnosticsPublisher implements DiagnosticsPublisherIntf {
   private readonly byFile = new Map<string, any[]>();
-  private readonly reporter: (params: {
-    uri: string;
-    issues: IssueIntf[];
-  }) => void;
-  // Optional per-issue streaming reporter (used to send single issues to LSP)
-  private readonly reporterStream: (params: {
-    uri: string;
-    issue: IssueIntf;
-  }) => void | Promise<void>;
 
+  /**
+   * Construct a diagnostics publisher by specifying publishing behavior; these are
+   * functions expected to push to a LSP server.
+   * @param {ReporterIntf} reporter - batch publishing function
+   * @param {ReporterStreamIntf} reporterStream - publishing function
+   */
   public constructor(
-    reporter: (params: { uri: string; issues: IssueIntf[] }) => void,
-    reporterStream: (params: {
-      uri: string;
-      issue: IssueIntf;
-    }) => void | Promise<void>,
-  ) {
-    // reporter is expected to send a notification to the LSP server
-    // If no reporter is provided, fall back to local DiagnosticCollection
-    // for compatibility (useful in tests).
-    this.reporter = reporter;
-    this.reporterStream = reporterStream;
-  }
+    private readonly reporter: ReporterIntf,
+    private readonly reporterStream: ReporterStreamIntf,
+  ) {}
 
+  /**
+   * Clears the internal hashmap of uri: diagnostic records.
+   */
   public dispose(): void {
     this.byFile.clear();
   }
 
+  /**
+   * Clear diagnostics from entire workspace. Pushes empty diagnostics to LSP server.
+   * Resets internal hashmap.
+   */
   public clear(): void {
     // Notify reporter for each tracked file with an empty issue list so
     // any remote diagnostics sink (language client/server) can publish
@@ -56,9 +59,16 @@ export default class DiagnosticsPublisher implements DiagnosticsPublisherIntf {
       // ignore overall errors
     }
     this.byFile.clear();
-    // fallbackReporter will also clear the VS Code collection if used
   }
 
+  /**
+   * Clears diagnostics whose URI match a regular expression. This is used to reset
+   * specific resources between runs.
+   *
+   * How: pushes empty diagnostics to matching records via LSP server
+   *  & clears internap hashmap for these records.
+   * @param {RegExp} pattern - regular matching pattern
+   */
   public clearUriMatch(pattern: RegExp): void {
     try {
       for (const [uri] of this.byFile.entries()) {
@@ -80,6 +90,11 @@ export default class DiagnosticsPublisher implements DiagnosticsPublisherIntf {
     }
   }
 
+  /**
+   * Adds a diagnostic. Pushes it to the LSP server so it shows up in the vscode problems UI.
+   * @param {IssueIntf} issue - diagnostic object
+   * @param {vscode.WorkspaceFolder} workspaceFolder
+   */
   public addIssue(
     issue: IssueIntf,
     workspaceFolder: vscode.WorkspaceFolder,
@@ -93,17 +108,12 @@ export default class DiagnosticsPublisher implements DiagnosticsPublisherIntf {
     list.push(issue);
     this.byFile.set(uri, list);
 
-    // If a per-issue streaming reporter is available, use it for
-    // immediate single-issue delivery (reliable with retries). Do not
-    // call the bulk reporter on every add in that case — bulk reporter
-    // will be invoked on flush(). If no reporterStream is present,
-    // fall back to bulk reporter behavior per-add.
+    // immediate single-issue delivery
     this.reporterStream({
       uri,
       issue,
     });
   }
-
   // Flush all pending diagnostics to the reporter (useful once a client
   // becomes ready so any buffered issues are published via LSP).
   public flush(): void {

@@ -1,5 +1,4 @@
 import { spawn, ChildProcess } from "child_process";
-import IssueImpl from "../../application/parsing/IssueImpl";
 import DiagnosticsPublisherIntf from "../../diagnostics/DiagnosticsPublisherIntf";
 import ExtensionContextIntf from "../../vscodeextension/ExtensionContextIntf";
 import * as vscode from "vscode";
@@ -9,9 +8,8 @@ export const PATT = /^(.*):(\d+):(\d+):\s+(W|E|I|R|C)([^:]*):\s+(.*)$/;
 export const PATT_ALT = /^(.*):(\d+):\s*\[([A-Z]\d+)[^\]]*\]\s*(.*)$/;
 
 /**
- * PylintGateway
+ * Gateway to pylint process
  */
-
 export default class PylintGateway {
   private pylintBin: string;
   private pylintArgs: string[];
@@ -19,6 +17,15 @@ export default class PylintGateway {
   private proc?: ChildProcess;
   private cancelled = false;
 
+  /**
+   * Constructor
+   * @param diagnosticsManager
+   * @param extensionContext
+   * @param handleBuffer
+   * @param cwd
+   * @param pylintBin
+   * @param pylintArgs
+   */
   constructor(
     private diagnosticsManager: DiagnosticsPublisherIntf,
     private extensionContext: ExtensionContextIntf,
@@ -31,6 +38,12 @@ export default class PylintGateway {
     this.pylintArgs = pylintArgs;
   }
 
+  /**
+   * Resolves and executes pylint for the user's workspace and target resource.
+   * Handles cancellation by interrupt.
+   * @param {vscode.CancellationToken} token
+   * @returns {Promise<void>}
+   */
   public execute(token?: vscode.CancellationToken): Promise<void> {
     if (!this.pylintBin) {
       process.stderr.write(

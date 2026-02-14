@@ -20,10 +20,12 @@ export default class RunResourceCommand implements CommandIntf {
     private readonly diagnosticsManager: DiagnosticsPublisherIntf,
   ) {}
 
+  /**
+   * Register a command to run pylint against a resource selected through file explorer.
+   * Displays a notification for duration of process.
+   * @returns {vscode.Disposable} command resource
+   */
   public register(): vscode.Disposable {
-    // The explorer/context will pass a resource Uri as the first arg when
-    // the user right-clicks a file or folder. We show progress and delegate
-    // to registerHelper which accepts the resource.
     const callback = (resource: vscode.Uri | undefined) => {
       vscode.window.withProgress(
         {
@@ -34,10 +36,17 @@ export default class RunResourceCommand implements CommandIntf {
         (progress, token) => this.registerHelper(progress, token, resource),
       );
     };
-
     return this.ext.registerCommand(RunResourceCommand.id, callback);
   }
 
+  /**
+   * Spawns a `pylint` process, sending its output to output parser task.
+   * Handles cancellation through UI event.
+   * @param {vscode.Progress} progress
+   * @param {vscode.CancellationToken} token
+   * @param {vscode.Uri | undefined} resource - target passed to pylint
+   * @returns {Promise<void>}
+   */
   private async registerHelper(
     progress: vscode.Progress<{ increment: number; message?: string }>,
     token: vscode.CancellationToken,

@@ -1,5 +1,8 @@
 import Severity from "./Severity";
 
+/**
+ * JavaScript object representation of diagnostic messages emitted by `pylint`
+ */
 interface IssueIntf {
   file: string;
   line: number;

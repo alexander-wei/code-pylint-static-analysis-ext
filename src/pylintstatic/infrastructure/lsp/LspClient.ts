@@ -3,12 +3,28 @@ import { LspClientOptions } from "./LspClientOptions";
 import { LspServerOptions } from "./LspServerOptions";
 import IssueIntf from "src/pylintstatic/diagnostics/IssueIntf";
 
+/**
+ * LspClient resource. Handles incoming diagnostic messages so that they are registered by VsCode as
+ * LSP diagnostic objects and displayed in the Problems UI.
+ */
 export default class LspClient {
   private client: LanguageClient;
+
+  /**
+   * Client readiness state; diagnostics are not pushed unless true.
+   */
   private clientReady: boolean | undefined;
 
+  /**
+   * Handle to LanguageClient callback. Operations are chained through updating this handle.
+   */
   private startPromise: Promise<void> | undefined;
 
+  /**
+   * Constructor
+   * @param {LspClientOptions} clientOptions
+   * @param {LspServerOptions} serverOptions
+   */
   constructor(
     clientOptions: LspClientOptions,
     serverOptions: LspServerOptions,
@@ -21,6 +37,9 @@ export default class LspClient {
     );
   }
 
+  /**
+   * Start the LspClient and its complementary LspServer
+   */
   public start(): void {
     console.log("[extension] starting language client");
     this.startPromise = this.client.start();
@@ -30,15 +49,27 @@ export default class LspClient {
     );
   }
 
+  /**
+   * Set client readiness to true.
+   */
   private setClientReady(): void {
     this.clientReady = true;
     console.log("[extension] language client started — clientReady=true");
   }
 
+  /**
+   * Handle errors by emitting log message.
+   * @param {any} err
+   */
   private catchClientReady(err: any): void {
     console.log("[extension] language client failed to start", err);
   }
 
+  /**
+   * Push a single diagnostic to the language server.
+   * @param p - translated diagnostic object
+   * @returns {Promise<void>}
+   */
   public async reporterStream(p: {
     uri: string;
     issue: IssueIntf;
@@ -87,6 +118,10 @@ export default class LspClient {
     console.log("[extension] reporterStream failed after retries", lastErr);
   }
 
+  /**
+   * Forcefully push diagnostics to language server.
+   * @param params - translated diagnostics object
+   */
   public async reporter(params: any): Promise<void> {
     try {
       console.log(
